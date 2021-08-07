@@ -1,8 +1,5 @@
 package my.application.servlet;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import my.application.service.EmailService;
 
 import java.io.IOException;
@@ -29,7 +26,6 @@ public class ApplicationServlet extends HttpServlet {
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     resp.setStatus(200);
     PrintWriter pw = resp.getWriter();
-    emailService.getAllEmails().forEach(email -> pw.println(email));
-    emailService.getEmail(1);
+    emailService.getAllEmails().forEach(pw::println);
   }
 }
