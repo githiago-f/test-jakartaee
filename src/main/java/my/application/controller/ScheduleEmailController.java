@@ -14,7 +14,7 @@ import my.application.dto.ScheduledEmailDTO;
 import my.application.entity.ScheduledEmail;
 import my.application.service.EmailService;
 
-@Path("/emails")
+@Path("/v1/emails")
 @NoArgsConstructor
 public class ScheduleEmailController {
   EmailService emailService;
@@ -35,13 +35,11 @@ public class ScheduleEmailController {
   @GET
   @Path("/{id}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response get(@PathParam("id") Long id) {
-    ScheduledEmail email = emailService.getEmail(id);
-    if (email == null) {
-      return Response.status(Status.NOT_FOUND).build();
-    }
-    email.createDefaultLink();
-    return Response.ok(email).build();
+  public Response view(@PathParam("id") Long id) {
+    return emailService.findEmail(id).map(scheduledEmail -> {
+      scheduledEmail.createDefaultLink();
+      return Response.ok(scheduledEmail).build();
+    }).orElse(Response.status(Status.NOT_FOUND).build());
   }
 
   @POST
@@ -50,16 +48,6 @@ public class ScheduleEmailController {
   public Response create(@Valid ScheduledEmailDTO scheduledEmailDTO) {
     ScheduledEmail persistScheduledEmail = emailService.insert(scheduledEmailDTO.toEntity());
     return Response.status(201).entity(persistScheduledEmail).build();
-  }
-
-  @PUT
-  @Path("/{id}")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Response update(ScheduledEmail email) {
-    emailService.update(email);
-    email.createDefaultLink();
-    return Response.status(Status.OK).entity(email).build();
   }
 
   @DELETE

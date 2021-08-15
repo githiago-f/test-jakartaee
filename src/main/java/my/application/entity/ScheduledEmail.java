@@ -1,5 +1,6 @@
 package my.application.entity;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,9 @@ import lombok.Data;
 @Data
 @Entity
 @Table(name = "emails")
-public class ScheduledEmail {
+public class ScheduledEmail implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;

@@ -1,6 +1,7 @@
 package my.application.dao;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javax.ejb.Stateless;
@@ -11,13 +12,13 @@ import my.application.entity.ScheduledEmail;
 
 @Stateless
 public class ScheduledEmailDAO {
-  Logger logger = Logger.getLogger(ScheduledEmailDAO.class.getName());
-
   @PersistenceContext(unitName = "schedule-emails")
   EntityManager em;
 
+  private static final Logger LOG = Logger.getLogger(ScheduledEmailDAO.class.getName());
+
   public ScheduledEmail insert(ScheduledEmail email) {
-    logger.info("insert email " + email.getEmail());
+    LOG.info("insert email " + email.getEmail());
     em.persist(email);
     email.createDefaultLink();
     return email;
@@ -28,24 +29,27 @@ public class ScheduledEmailDAO {
     return em.createQuery(sql, ScheduledEmail.class).getResultList();
   }
 
-  public List<ScheduledEmail> findByScheduled(boolean status) {
-    String sql = "SELECT e FROM ScheduledEmail e WHERE e.scheduled = 1";
-    return em.createQuery(sql, ScheduledEmail.class).getResultList();
+  public Optional<ScheduledEmail> findById(Long id) {
+    ScheduledEmail findEmail = em.find(ScheduledEmail.class, id);
+    return Optional.ofNullable(findEmail);
   }
 
-  public ScheduledEmail findById(Long id) {
-    return em.find(ScheduledEmail.class, id);
-  }
-
-  public void update(ScheduledEmail email) {
-    em.merge(email);
+  public ScheduledEmail update(ScheduledEmail email) {
+    return em.merge(email);
   }
 
   public void delete(Long id) {
-    ScheduledEmail email = em.find(ScheduledEmail.class, id);
-    if (email == null) {
-      throw new IllegalArgumentException("No email found with id " + id);
-    }
-    em.remove(email);
+    Optional<ScheduledEmail> findEmail = findById(id);
+    findEmail.ifPresent(email -> {
+      LOG.info("delete email " + email.getId());
+      em.remove(email);
+    });
+    findEmail.orElseThrow(() -> new IllegalArgumentException("email not found"));
+  }
+
+  public List<ScheduledEmail> findNonScheduledEmails() {
+    LOG.info("find non scheduled emails");
+    String sql = "SELECT e FROM ScheduledEmail e WHERE e.scheduled = 0";
+    return em.createQuery(sql, ScheduledEmail.class).getResultList();
   }
 }

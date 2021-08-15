@@ -1,6 +1,9 @@
 package my.application.service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
+
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
@@ -11,7 +14,8 @@ import my.application.entity.ScheduledEmail;
 @Stateless
 @NoArgsConstructor
 public class EmailService {
-  ScheduledEmailDAO scheduledEmailDAO;
+  private static final Logger LOG = Logger.getLogger(EmailService.class.getName());
+  private ScheduledEmailDAO scheduledEmailDAO;
 
   @Inject
   public EmailService(ScheduledEmailDAO scheduledEmailDAO) {
@@ -22,7 +26,7 @@ public class EmailService {
     return scheduledEmailDAO.findAll();
   }
 
-  public ScheduledEmail getEmail(Long id) {
+  public Optional<ScheduledEmail> findEmail(Long id) {
     return scheduledEmailDAO.findById(id);
   }
 
@@ -30,11 +34,25 @@ public class EmailService {
     return scheduledEmailDAO.insert(email);
   }
 
-  public void update(ScheduledEmail email) {
-    scheduledEmailDAO.update(email);
+  public ScheduledEmail scheduleEmail(ScheduledEmail email) {
+    email.setScheduled(true);
+    return scheduledEmailDAO.update(email);
   }
 
   public void delete(Long id) {
     scheduledEmailDAO.delete(id);
+  }
+
+  public List<ScheduledEmail> findNonScheduledEmails() {
+    return scheduledEmailDAO.findNonScheduledEmails();
+  }
+
+  public void send(ScheduledEmail email) {
+    try {
+      Thread.sleep(2000);
+      LOG.info(String.format("Sending email %s", email.getEmail()));
+    } catch (InterruptedException e) {
+      LOG.warning(e.getMessage());
+    }
   }
 }
